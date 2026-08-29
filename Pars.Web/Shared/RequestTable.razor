@@ -1,0 +1,31 @@
+@if (Items is null || Items.Count == 0)
+{
+    <div class="empty">درخواستی برای نمایش وجود ندارد.</div>
+}
+else
+{
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>نوع</th><th>عنوان</th><th>کد پرسنلی</th><th>بازه</th><th>وضعیت</th><th>مرحله</th><th>عملیات</th></tr></thead>
+            <tbody>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    <td>@Kind(item.Kind)</td><td>@item.Title</td><td>@item.PersonId</td>
+                    <td>@item.StartDate.ToString("yyyy/MM/dd") تا @item.EndDate.ToString("yyyy/MM/dd")</td>
+                    <td><span class="status @StatusClass(item.Status)">@Status(item.Status)</span></td>
+                    <td>@(item.Status == EnterpriseRequestStatus.Pending ? item.CurrentStep.ToString() : "-")</td>
+                    <td>@if(item.Status==EnterpriseRequestStatus.Draft){<button class="small" @onclick="()=>OnSubmit.InvokeAsync(item.Id)">ارسال</button>}</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+@code {
+    [Parameter] public List<EnterpriseRequestVm> Items { get; set; } = new();
+    [Parameter] public EventCallback<Guid> OnSubmit { get; set; }
+    static string Kind(EnterpriseRequestKind k)=>k==EnterpriseRequestKind.Leave?"مرخصی":"مأموریت";
+    static string Status(EnterpriseRequestStatus s)=>s switch{EnterpriseRequestStatus.Draft=>"پیش‌نویس",EnterpriseRequestStatus.Pending=>"در انتظار تأیید",EnterpriseRequestStatus.Approved=>"تأیید شده",EnterpriseRequestStatus.Rejected=>"رد شده",EnterpriseRequestStatus.Cancelled=>"لغو شده",_=>s.ToString()};
+    static string StatusClass(EnterpriseRequestStatus s)=>s.ToString().ToLowerInvariant();
+}

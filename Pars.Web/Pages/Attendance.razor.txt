@@ -1,0 +1,65 @@
+@page "/attendance"
+@inject ApiClient Api
+@attribute [Authorize(Roles = "Admin,HR,Manager")]
+
+<h1>⏰ حضور و غیاب</h1>
+
+<div class="filter-bar">
+    <label>سال:</label>
+    <input type="number" @bind="_year" style="width:80px" />
+    <label>ماه:</label>
+    <select @bind="_month">
+        @for (int i = 1; i <= 12; i++)
+        {
+            <option value="@i">@i</option>
+        }
+    </select>
+    <button class="btn-primary" @onclick="LoadReport">📊 مشاهده گزارش</button>
+</div>
+
+@if (_records != null)
+{
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>کد پرسنلی</th><th>نام</th><th>واحد</th>
+                <th>روزهای کاری</th><th>حضور</th><th>غیبت</th>
+                <th>تاخیر (دقیقه)</th><th>تعجیل (دقیقه)</th><th>اضافه‌کاری (دقیقه)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in _records)
+            {
+                <tr>
+                    <td>@r.PersonId</td>
+                    <td>@r.FullName</td>
+                    <td>@r.Unit</td>
+                    <td>@r.WorkDays</td>
+                    <td>@r.PresentDays</td>
+                    <td>@r.AbsentDays</td>
+                    <td>@r.LateMinutes</td>
+                    <td>@r.EarlyDepartureMinutes</td>
+                    <td>@r.OvertimeMinutes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private int _year = DateTime.Now.Year;
+    private int _month = DateTime.Now.Month;
+    private List<MonthlyAttendanceRecord>? _records;
+
+    private async Task LoadReport()
+    {
+        _records = await Api.GetAsync<List<MonthlyAttendanceRecord>>(
+            $"api/reports/attendance/monthly?year={_year}&month={_month}");
+    }
+
+    public record MonthlyAttendanceRecord(
+        string PersonId, string FullName, string Unit,
+        int WorkDays, int PresentDays, int AbsentDays,
+        int LateMinutes, int EarlyDepartureMinutes,
+        int OvertimeMinutes, decimal TotalWorkHours);
+}

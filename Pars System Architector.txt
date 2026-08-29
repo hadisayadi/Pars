@@ -1,0 +1,20 @@
+┌─────────────────────────────────────────────────────────────┐
+│                    Pars System Architecture                  │
+├─────────────────────────────────────────────────────────────┤
+│  🌐 Frontend: Blazor Server (C#)                             │
+│     ├── Login / Auth                                        │
+│     ├── Dashboard                                           │
+│     ├── Personnel CRUD                                      │
+│     ├── Attendance                                          │
+│     └── Reports                                             │
+├─────────────────────────────────────────────────────────────┤
+│  🔐 API Gateway: ASP.NET Core Web API                        │
+│     ├── JWT Authentication + Roles                          │
+│     ├── Controllers (172 endpoints)                         │
+│     ├── Report Services                                     │
+│     └── Swagger UI                                          │
+├─────────────────────────────────────────────────────────────┤
+│  🗄️ Database: SQL Server (Pars DB - 172 tables)             │
+├─────────────────────────────────────────────────────────────┤
+│  🐳 Docker + CI/CD (GitHub Actions)                         │
+└─────────────────────────────────────────────────────────────┘

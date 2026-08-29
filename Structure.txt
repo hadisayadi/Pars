@@ -1,0 +1,14 @@
+ParsSystem/
+├── src/
+│   ├── Pars.Domain/              # Entities (از scaffold تولید شده)
+│   ├── Pars.Application/         # Services, DTOs, Interfaces
+│   ├── Pars.Infrastructure/      # EF Core, Repositories, JWT
+│   ├── Pars.API/                 # Backend API
+│   ├── Pars.Web/                 # Blazor Frontend ⭐
+│   └── Pars.Tests/               # Unit & Integration Tests
+├── docker/
+│   ├── Dockerfile.api
+│   ├── Dockerfile.web
+│   └── docker-compose.yml
+├── .github/workflows/ci-cd.yml
+└── README.md

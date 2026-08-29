@@ -1,0 +1,14 @@
+Pars.Web/Pars.Web.csproj: XML OK
+Pars.API/Pars.API.csproj: XML OK
+Pars.Application/Pars.Application.csproj: XML OK
+Pars.Domain/Pars.Domain.csproj: XML OK
+Pars.Tests/Pars.Tests.csproj: XML OK
+Pars.Infrastructure/Pars.Infrastructure.csproj: XML OK
+Pars.API/appsettings.json: JSON OK
+Pars.Web/wwwroot/appsettings.json: JSON OK
+Pars.Domain/Entities/Enterprise/EnterpriseRequest.cs: BRACES OK
+Pars.Application/Enterprise/EnterpriseContracts.cs: BRACES OK
+Pars.Infrastructure/Services/Enterprise/EnterpriseRequestService.cs: BRACES OK
+Pars.Infrastructure/Persistence/Configurations/Enterprise/EnterpriseConfigurations.cs: BRACES OK
+Pars.API/Controllers/EnterpriseRequestsController.cs: BRACES OK
+Pars.API/Controllers/HrDashboardController.cs: BRACES OK

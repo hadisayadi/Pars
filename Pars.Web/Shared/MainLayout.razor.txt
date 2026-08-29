@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="app-container">
+    @if (_isAuthenticated)
+    {
+        <aside class="sidebar">
+            <div class="logo">🏢 Pars</div>
+            <nav>
+                <NavLink href="/" Match="NavLinkMatch.All">📊 داشبورد</NavLink>
+                <NavLink href="/personals">👥 پرسنل</NavLink>
+                <NavLink href="/attendance">⏰ حضور و غیاب</NavLink>
+                <NavLink href="/reports">📈 گزارش‌ها</NavLink>
+            </nav>
+            <div class="user-info">
+                <span>👤 @_username</span>
+                <button class="btn-logout" @onclick="Logout">خروج</button>
+            </div>
+        </aside>
+    }
+
+    <main class="content">
+        @Body
+    </main>
+</div>
+
+@code {
+    private bool _isAuthenticated;
+    private string? _username;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isAuthenticated = await Auth.IsAuthenticatedAsync();
+        if (_isAuthenticated)
+            _username = await Blazored.LocalStorage.ILocalStorageServiceExtensions
+                .GetItemAsync<string>(await GetStorage(), "username");
+    }
+
+    private async Task<Blazored.LocalStorage.ILocalStorageService> GetStorage() =>
+        throw new NotImplementedException(); // Inject properly in real code
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login");
+    }
+}

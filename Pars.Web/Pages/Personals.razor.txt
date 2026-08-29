@@ -1,0 +1,180 @@
+@page "/personals"
+@inject ApiClient Api
+@attribute [Authorize(Roles = "Admin,HR,Manager")]
+
+<div class="page-header">
+    <h1>👥 مدیریت پرسنل</h1>
+    <button class="btn-primary" @onclick="ShowCreateModal">➕ افزودن پرسنل</button>
+</div>
+
+@* آمار فیلتر شده *@
+<div class="filter-stats">
+    <div class="stat-badge">📊 کل: @_result?.TotalCount ?? 0</div>
+    <div class="stat-badge">👨 مرد: @_result?.FilteredMaleCount ?? 0</div>
+    <div class="stat-badge">👩 زن: @_result?.FilteredFemaleCount ?? 0</div>
+</div>
+
+@* پنل فیلتر *@
+<AdvancedFilter Model="_filter" OnFilterChanged="OnFilterChanged" />
+
+@* جدول داده‌ها با صفحه‌بندی *@
+<PagedDataGrid TItem="PersonalDto"
+               Items="_result?.Items"
+               Columns="_columns"
+               TotalCount="_result?.TotalCount ?? 0"
+               CurrentPage="_filter.Page"
+               PageSize="_filter.PageSize"
+               HasActions="true"
+               OnSortChanged="OnSortChanged"
+               OnPageChanged="OnPageChanged"
+               OnPageSizeChanged="OnPageSizeChanged">
+    <ActionTemplate Context="p">
+        <button class="btn-edit" @onclick="() => ShowEditModal(p)">✏️</button>
+        <button class="btn-delete" @onclick="() => Delete(p.Id)">🗑️</button>
+    </ActionTemplate>
+</PagedDataGrid>
+
+@* مودال ایجاد/ویرایش *@
+@if (_showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal" @onclick:stopPropagation="true">
+            <h2>@(_isEdit ? "✏️ ویرایش پرسنل" : "➕ افزودن پرسنل")</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>کد پرسنلی</label>
+                    <input type="text" @bind="_form.Id" disabled="@_isEdit" />
+                </div>
+                <div class="form-group">
+                    <label>نام</label>
+                    <input type="text" @bind="_form.FirstName" />
+                </div>
+                <div class="form-group">
+                    <label>نام خانوادگی</label>
+                    <input type="text" @bind="_form.LastName" />
+                </div>
+                <div class="form-group">
+                    <label>کد ملی</label>
+                    <input type="text" @bind="_form.CodeMelli" />
+                </div>
+                <div class="form-group">
+                    <label>موبایل</label>
+                    <input type="text" @bind="_form.TelMob" />
+                </div>
+                <div class="form-group">
+                    <label>شرکت</label>
+                    <input type="text" @bind="_form.Company" />
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" @onclick="Save">💾 ذخیره</button>
+                <button class="btn-secondary" @onclick="CloseModal">انصراف</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private PersonalSearchResult? _result;
+    private PersonalFilterRequest _filter = new();
+    private PersonalForm _form = new();
+    private bool _showModal;
+    private bool _isEdit;
+
+    private List<PagedDataGrid<PersonalDto>.GridColumn<PersonalDto>> _columns = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _columns = new List<PagedDataGrid<PersonalDto>.GridColumn<PersonalDto>>
+        {
+            new() { Field = "Id", Title = "کد", GetValue = p => p.Id },
+            new() { Field = "FirstName", Title = "نام", GetValue = p => p.FirstName },
+            new() { Field = "LastName", Title = "نام خانوادگی", GetValue = p => p.LastName },
+            new() { Field = "CodeMelli", Title = "کد ملی", GetValue = p => p.CodeMelli },
+            new() { Field = "TelMob", Title = "موبایل", GetValue = p => p.TelMob },
+            new() { Field = "Company", Title = "شرکت", GetValue = p => p.Company },
+        };
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _result = await Api.PostAsync<PersonalSearchResult>("api/personals/search", _filter);
+    }
+
+    private async Task OnFilterChanged(PersonalFilterRequest filter)
+    {
+        _filter = filter;
+        await LoadData();
+    }
+
+    private async Task OnSortChanged((string Field, bool Descending) sort)
+    {
+        _filter.SortBy = sort.Field;
+        _filter.SortDescending = sort.Descending;
+        _filter.Page = 1;
+        await LoadData();
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        _filter.Page = page;
+        await LoadData();
+    }
+
+    private async Task OnPageSizeChanged(int pageSize)
+    {
+        _filter.PageSize = pageSize;
+        _filter.Page = 1;
+        await LoadData();
+    }
+
+    private void ShowCreateModal()
+    {
+        _form = new();
+        _isEdit = false;
+        _showModal = true;
+    }
+
+    private void ShowEditModal(PersonalDto p)
+    {
+        _form = new PersonalForm
+        {
+            Id = p.Id, FirstName = p.FirstName, LastName = p.LastName,
+            CodeMelli = p.CodeMelli, TelMob = p.TelMob, Company = p.Company
+        };
+        _isEdit = true;
+        _showModal = true;
+    }
+
+    private async Task Save()
+    {
+        if (_isEdit)
+            await Api.PutAsync($"api/personals/{_form.Id}", _form);
+        else
+            await Api.PostAsync<object>("api/personals", _form);
+
+        _showModal = false;
+        await LoadData();
+    }
+
+    private async Task Delete(string id)
+    {
+        if (!confirm("آیا از حذف این پرسنل اطمینان دارید؟")) return;
+        await Api.DeleteAsync($"api/personals/{id}");
+        await LoadData();
+    }
+
+    private void CloseModal() => _showModal = false;
+
+    public class PersonalForm
+    {
+        public string Id { get; set; } = "";
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? CodeMelli { get; set; }
+        public string? TelMob { get; set; }
+        public string? Company { get; set; }
+    }
+}

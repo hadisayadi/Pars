@@ -1,0 +1,37 @@
+using Microsoft.EntityFrameworkCore;
+using Pars.Domain.Entities;
+
+namespace Pars.Infrastructure.Persistence;
+
+public class ParsDbContext : DbContext
+{
+    public ParsDbContext(DbContextOptions<ParsDbContext> options) : base(options) { }
+
+    public DbSet<Personal> Personals => Set<Personal>();
+    public DbSet<PersonalChild> PersonalChildren => Set<PersonalChild>();
+    public DbSet<PersonalFile> PersonalFiles => Set<PersonalFile>();
+    public DbSet<AttendanceEntry> AttendanceEntries => Set<AttendanceEntry>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Personal>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasMany(e => e.Children)
+                  .WithOne(c => c.Personal)
+                  .HasForeignKey(c => c.Pid)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AttendanceEntry>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Personal)
+                  .WithMany(p => p.AttendanceEntries)
+                  .HasForeignKey(e => e.PersonId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+}

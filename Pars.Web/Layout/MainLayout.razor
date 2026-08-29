@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="shell">
+    <aside class="sidebar">
+        <div class="brand"><div class="logo">P</div><div><strong>PARS SYSTEM</strong><small>Enterprise HR & Workflow</small></div></div>
+        <nav>
+            <span class="nav-title">مدیریت</span>
+            <NavLink href="/" Match="NavLinkMatch.All">داشبورد عملیاتی</NavLink>
+            <NavLink href="/hr/dashboard">داشبورد منابع انسانی</NavLink>
+            <NavLink href="/personals">پرونده پرسنلی</NavLink>
+            <NavLink href="/attendance">حضور و غیاب</NavLink>
+            <span class="nav-title">درخواست‌ها</span>
+            <NavLink href="/hr/leave">مرخصی</NavLink>
+            <NavLink href="/hr/missions">مأموریت</NavLink>
+            <NavLink href="/requests/my">درخواست‌های من</NavLink>
+            <NavLink href="/requests/inbox">کارتابل تأیید</NavLink>
+            <NavLink href="/requests/history">تاریخچه گردش کار</NavLink>
+        </nav>
+        <button class="logout secondary" @onclick="Logout">خروج از سامانه</button>
+    </aside>
+    <main>
+        <header class="topbar"><div><b>سامانه جامع سازمانی پارس</b><span>نسخه 1.0</span></div><a href="/login">حساب کاربری</a></header>
+        <section class="content">@Body</section>
+    </main>
+</div>
+@code{async Task Logout(){await Auth.LogoutAsync();Nav.NavigateTo("/login",true);}}

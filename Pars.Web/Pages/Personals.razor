@@ -1,0 +1,16 @@
+@page "/personals"
+@inject ApiClient Api
+<h1>مدیریت پرسنل</h1>
+<div class="toolbar"><input @bind="_filter.Search" placeholder="نام، کد ملی، کد پرسنلی"/><input @bind="_filter.Company" placeholder="شرکت"/><button @onclick="Search">جستجو</button><button @onclick="New">پرسنل جدید</button></div>
+@if(!string.IsNullOrWhiteSpace(_error)){<div class="error">@_error</div>}<Busy Value="_loading" />
+@if(_result is not null){<div class="stats">تعداد: @_result.TotalCount | مرد: @_result.FilteredMaleCount | زن: @_result.FilteredFemaleCount</div><div class="table-wrap"><table><thead><tr><th>کد</th><th>نام</th><th>نام خانوادگی</th><th>کد ملی</th><th>موبایل</th><th>شرکت</th><th>سمت</th><th></th></tr></thead><tbody>@foreach(var p in _result.Items){<tr><td>@p.Id</td><td>@p.FirstName</td><td>@p.LastName</td><td>@p.CodeMelli</td><td>@p.TelMob</td><td>@p.Company</td><td>@p.Pos</td><td><button @onclick="()=>Edit(p)">ویرایش</button></td></tr>}</tbody></table></div>}
+@if(_editing){<div class="panel"><h3>@(_isNew?"ثبت پرسنل":"ویرایش پرسنل")</h3><div class="form-grid"><label>کد پرسنلی<input @bind="_form.Id" disabled="@(!_isNew)"/></label><label>نام<input @bind="_form.FirstName"/></label><label>نام خانوادگی<input @bind="_form.LastName"/></label><label>نام پدر<input @bind="_form.FatherName"/></label><label>کد ملی<input @bind="_form.CodeMelli"/></label><label>موبایل<input @bind="_form.TelMob"/></label><label>ایمیل<input @bind="_form.Email"/></label><label>شرکت<input @bind="_form.Company"/></label><label>سمت<input @bind="_form.Pos"/></label></div><button @onclick="Save">ذخیره</button><button class="secondary" @onclick="CloseEdit">انصراف</button></div>}
+@code{
+ PersonalFilterRequest _filter=new(); PersonalSearchResult? _result; PersonalForm _form=new(); bool _loading,_editing,_isNew; string? _error;
+ protected override Task OnInitializedAsync()=>Search();
+ async Task Search(){_loading=true;_error=null;try{_result=await Api.PostAsync<PersonalSearchResult>("api/personals/search",_filter);}catch(Exception ex){_error=ex.Message;}finally{_loading=false;}}
+ void New(){_form=new();_isNew=true;_editing=true;} void Edit(PersonalDto p){_form=new(){Id=p.Id,FirstName=p.FirstName,LastName=p.LastName,FatherName=p.FatherName,CodeMelli=p.CodeMelli,TelMob=p.TelMob,Email=p.Email,Company=p.Company,Pos=p.Pos};_isNew=false;_editing=true;}
+ void CloseEdit()=>_editing=false;
+ async Task Save(){_error=null;try{if(_isNew)await Api.PostAsync<object>("api/personals",_form);else await Api.PutAsync($"api/personals/{_form.Id}",_form);_editing=false;await Search();}catch(Exception ex){_error=ex.Message;}}
+ sealed class PersonalForm{public string Id{get;set;}="";public string? FirstName{get;set;}public string? LastName{get;set;}public string? FatherName{get;set;}public string? CodeMelli{get;set;}public string? TelMob{get;set;}public string? Email{get;set;}public string? Company{get;set;}public string? Pos{get;set;}}
+}

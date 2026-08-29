@@ -1,0 +1,22 @@
+ParsSystem/
+├── src/
+│   ├── Pars.Domain/
+│   │   └── Entities/
+│   │       ├── Personal.cs
+│   │       ├── Hotel.cs
+│   │       ├── TransportDarkhast.cs
+│   │       ├── MissionEntry.cs
+│   │       └── ... (۱۷۲ فایل Entity)
+│   ├── Pars.Application/
+│   │   └── DTOs/
+│   │       ├── PersonalDto.cs
+│   │       ├── HotelDto.cs
+│   │       └── ... (۱۷۲ فایل DTO)
+│   ├── Pars.Infrastructure/
+│   │   └── Persistence/
+│   │       └── ParsDbContext.cs  ← تمام DbSet ها و FK ها
+│   └── Pars.API/
+│       └── Controllers/
+│           ├── PersonalsController.cs
+│           ├── HotelsController.cs
+│           └── ... (۱۷۲ فایل Controller)

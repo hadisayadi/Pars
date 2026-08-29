@@ -1,0 +1,162 @@
+@using Pars.Web.Models
+
+<div class="filter-panel">
+    <div class="filter-header">
+        <h3>🔍 فیلتر پیشرفته</h3>
+        <button class="btn-link" @onclick="ResetFilters">🔄 پاک کردن فیلترها</button>
+    </div>
+
+    <div class="filter-body">
+        @* جستجوی عمومی *@
+        <div class="filter-row">
+            <label>جستجو:</label>
+            <input type="text" @bind="Model.Search" @bind:event="oninput"
+                   @onkeyup="OnSearchInput" placeholder="نام، نام خانوادگی، کد ملی..." />
+        </div>
+
+        @* فیلترهای متنی *@
+        <div class="filter-grid">
+            <div class="filter-item">
+                <label>نام:</label>
+                <input type="text" @bind="Model.FirstName" @onchange="Apply" />
+            </div>
+            <div class="filter-item">
+                <label>نام خانوادگی:</label>
+                <input type="text" @bind="Model.LastName" @onchange="Apply" />
+            </div>
+            <div class="filter-item">
+                <label>کد ملی:</label>
+                <input type="text" @bind="Model.CodeMelli" @onchange="Apply" />
+            </div>
+            <div class="filter-item">
+                <label>شرکت:</label>
+                <select @bind="Model.Company" @onchange="Apply">
+                    <option value="">همه</option>
+                    @foreach (var c in Companies)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>جنسیت:</label>
+                <select @bind="Model.Jensiat" @onchange="Apply">
+                    <option value="">همه</option>
+                    <option value="مرد">مرد</option>
+                    <option value="زن">زن</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>وضعیت استخدام:</label>
+                <select @bind="Model.Estekhdam" @onchange="Apply">
+                    <option value="">همه</option>
+                    <option value="1">رسمی</option>
+                    <option value="2">قراردادی</option>
+                    <option value="3">پیمانی</option>
+                </select>
+            </div>
+        </div>
+
+        @* فیلترهای بازه‌ای *@
+        <div class="filter-section">
+            <h4>📅 بازه تاریخ استخدام:</h4>
+            <div class="filter-range">
+                <div class="filter-item">
+                    <label>از تاریخ:</label>
+                    <input type="date" @bind="Model.DateEstekhdamFrom" @onchange="Apply" />
+                </div>
+                <div class="filter-item">
+                    <label>تا تاریخ:</label>
+                    <input type="date" @bind="Model.DateEstekhdamTo" @onchange="Apply" />
+                </div>
+            </div>
+        </div>
+
+        @* فیلترهای چند انتخابی *@
+        <div class="filter-section">
+            <h4>🏢 واحدهای سازمانی:</h4>
+            <div class="checkbox-group">
+                @foreach (var unit in UnitOptions)
+                {
+                    <label class="checkbox-item">
+                        <input type="checkbox" checked="@unit.IsSelected"
+                               @onchange="e => ToggleUnit(unit, e)" />
+                        @unit.Name (@unit.Count)
+                    </label>
+                }
+            </div>
+        </div>
+
+        @* فیلترهای بولی *@
+        <div class="filter-section">
+            <h4>⚙️ سایر فیلترها:</h4>
+            <div class="checkbox-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" @bind="Model.NobatKar" @onchange="Apply" />
+                    فقط نوبت‌کار
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public PersonalFilterRequest Model { get; set; } = new();
+    [Parameter] public EventCallback<PersonalFilterRequest> OnFilterChanged { get; set; }
+
+    private List<string> Companies = new();
+    private List<UnitOption> UnitOptions = new();
+    private System.Timers.Timer? _searchTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // در پروژه واقعی، اینها از API خوانده می‌شوند
+        Companies = new List<string> { "شرکت نفت", "شرکت گاز", "شرکت پخش" };
+        UnitOptions = new List<UnitOption>
+        {
+            new() { Name = "اداری", Count = 45 },
+            new() { Name = "فنی", Count = 120 },
+            new() { Name = "مالی", Count = 30 },
+        };
+    }
+
+    private void OnSearchInput()
+    {
+        // Debounce: ۳۰۰ میلی‌ثانیه صبر کن بعد جستجو کن
+        _searchTimer?.Stop();
+        _searchTimer = new System.Timers.Timer(300);
+        _searchTimer.Elapsed += async (s, e) =>
+        {
+            _searchTimer!.Stop();
+            await InvokeAsync(Apply);
+        };
+        _searchTimer.Start();
+    }
+
+    private void ToggleUnit(UnitOption unit, ChangeEventArgs e)
+    {
+        unit.IsSelected = (bool)(e.Value ?? false);
+        Model.UnitCodes = UnitOptions.Where(u => u.IsSelected).Select(u => u.Name).ToList();
+        Apply();
+    }
+
+    private void Apply()
+    {
+        Model.Page = 1; // بازگشت به صفحه اول
+        OnFilterChanged.InvokeAsync(Model);
+    }
+
+    private void ResetFilters()
+    {
+        Model = new PersonalFilterRequest();
+        UnitOptions.ForEach(u => u.IsSelected = false);
+        OnFilterChanged.InvokeAsync(Model);
+    }
+
+    public class UnitOption
+    {
+        public string Name { get; set; } = "";
+        public int Count { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}

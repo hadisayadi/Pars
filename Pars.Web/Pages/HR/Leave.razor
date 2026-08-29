@@ -1,0 +1,51 @@
+@page "/hr/leave"
+@inject ApiClient Api
+
+<div class="page-title"><div><h1>مرخصی</h1><p>ثبت مرخصی روزانه یا ساعتی و پیگیری گردش تأیید</p></div><button @onclick="Load">بروزرسانی</button></div>
+@if (!string.IsNullOrWhiteSpace(_message)) { <div class="notice">@_message</div> }
+@if (!string.IsNullOrWhiteSpace(_error)) { <div class="error">@_error</div> }
+<div class="two-col enterprise-grid">
+    <section class="panel">
+        <h3>درخواست جدید</h3>
+        <div class="form-grid">
+            <label>کد پرسنلی<input @bind="_form.PersonId" /></label>
+            <label>عنوان<input @bind="_form.Title" /></label>
+            <label>از تاریخ<input type="date" @bind="_form.StartDate" /></label>
+            <label>تا تاریخ<input type="date" @bind="_form.EndDate" /></label>
+            <label class="check"><input type="checkbox" @bind="_form.IsHourly" /> مرخصی ساعتی</label>
+            <span></span>
+            @if (_form.IsHourly)
+            {
+                <label>از ساعت<input type="time" @bind="_form.StartTime" /></label>
+                <label>تا ساعت<input type="time" @bind="_form.EndTime" /></label>
+            }
+            <label>جانشین<input @bind="_form.SubstitutePersonId" /></label>
+            <label class="wide">توضیحات<textarea rows="3" @bind="_form.Description"></textarea></label>
+        </div>
+        <button @onclick="CreateAndSubmit">ثبت و ارسال برای تأیید</button>
+    </section>
+    <section class="panel balance-panel">
+        <h3>مانده مرخصی</h3>
+        <div class="toolbar"><input @bind="_balancePersonId" placeholder="کد پرسنلی" /><button @onclick="LoadBalance">محاسبه</button></div>
+        @if (_balance is not null)
+        {
+            <div class="metric"><span>سهمیه سالانه</span><b>@_balance.EntitlementDays</b></div>
+            <div class="metric"><span>انتقالی</span><b>@_balance.CarriedDays</b></div>
+            <div class="metric"><span>مصرف شده</span><b>@_balance.UsedDays</b></div>
+            <div class="metric primary"><span>مانده</span><b>@_balance.RemainingDays</b></div>
+        }
+    </section>
+</div>
+<section class="panel"><h3>درخواست‌های مرخصی من</h3><RequestTable Items="_items" OnSubmit="Submit" /></section>
+
+@code {
+    LeaveForm _form = new() { StartDate = DateTime.Today, EndDate = DateTime.Today };
+    List<EnterpriseRequestVm> _items = new(); LeaveBalanceVm? _balance; string _balancePersonId = ""; string? _error, _message;
+    protected override Task OnInitializedAsync() => Load();
+    async Task Load(){ try { _items = await Api.GetAsync<List<EnterpriseRequestVm>>("api/enterprise/requests/my?kind=1") ?? new(); } catch(Exception ex){_error=ex.Message;} }
+    async Task CreateAndSubmit(){ _error=null;_message=null; try { var created=await Api.PostAsync<EnterpriseRequestVm>("api/enterprise/requests", new { Kind=1,_form.PersonId,_form.Title,_form.Description,_form.StartDate,_form.EndDate,StartTime=Parse(_form.StartTime),EndTime=Parse(_form.EndTime),_form.IsHourly,Destination=(string?)null,HasVehicle=false,_form.SubstitutePersonId }); if(created is not null) await Submit(created.Id); _form=new(){StartDate=DateTime.Today,EndDate=DateTime.Today}; _message="درخواست مرخصی ثبت و وارد گردش تأیید شد."; await Load(); } catch(Exception ex){_error=ex.Message;} }
+    async Task Submit(Guid id){ await Api.PostAsync<EnterpriseRequestVm>($"api/enterprise/requests/{id}/submit", new{}); await Load(); }
+    async Task LoadBalance(){ if(string.IsNullOrWhiteSpace(_balancePersonId))return; try{_balance=await Api.GetAsync<LeaveBalanceVm>($"api/hr/leave-balance/{Uri.EscapeDataString(_balancePersonId)}?year={DateTime.Today.Year}");}catch(Exception ex){_error=ex.Message;} }
+    static TimeSpan? Parse(string? value)=>TimeSpan.TryParse(value,out var t)?t:null;
+    sealed class LeaveForm { public string PersonId{get;set;}=""; public string Title{get;set;}="مرخصی"; public string? Description{get;set;} public DateTime StartDate{get;set;} public DateTime EndDate{get;set;} public bool IsHourly{get;set;} public string? StartTime{get;set;} public string? EndTime{get;set;} public string? SubstitutePersonId{get;set;} }
+}

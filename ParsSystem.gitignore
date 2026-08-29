@@ -1,0 +1,152 @@
+# =========================
+# .NET / Visual Studio
+# =========================
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+[Bb]uilds/
+Artifacts/
+
+# =========================
+# ASP.NET / Blazor
+# =========================
+wwwroot/_framework/
+*.cache
+*.tmp
+*.temp
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# =========================
+# Node / npm
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+
+secrets.json
+*.secrets.json
+
+# Certificates / Keys
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+*.crt
+
+# =========================
+# SQL Server / Database
+# =========================
+*.mdf
+*.ldf
+*.bak
+*.trn
+*.bacpac
+
+# =========================
+# Logs
+# =========================
+logs/
+Logs/
+*.log
+
+# =========================
+# Upload / Runtime Data
+# =========================
+uploads/
+Uploads/
+temp/
+tmp/
+backup/
+backups/
+
+# =========================
+# IDE
+# =========================
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# JetBrains Rider
+# =========================
+.idea/
+*.sln.iml
+
+# =========================
+# Test Results
+# =========================
+TestResults/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# =========================
+# Publish Output
+# =========================
+publish/
+Publish/
+*.pubxml.user
+
+# =========================
+# Qwen / AI local files
+# =========================
+.qwen/
+.qwen-cache/
+.qwen-session/
+.qwen-history/
+
+# =========================
+# Local project backups
+# =========================
+*.zip
+*.rar
+*.7z
+
+# =========================
+# Sensitive config overrides
+# =========================
+appsettings.Production.local.json
+appsettings.Staging.local.json

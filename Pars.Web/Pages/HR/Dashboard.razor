@@ -1,0 +1,18 @@
+@page "/hr/dashboard"
+@inject ApiClient Api
+<div class="page-title"><div><h1>داشبورد منابع انسانی</h1><p>نمای لحظه‌ای نیروی انسانی، حضور و گردش درخواست‌ها</p></div><div class="toolbar"><input type="date" @bind="_date"/><button @onclick="Load">بروزرسانی</button></div></div>
+@if(!string.IsNullOrWhiteSpace(_error)){<div class="error">@_error</div>}
+@if(_data is not null){
+<div class="kpi-grid">
+ <div class="kpi"><span>کل کارکنان</span><b>@_data.TotalEmployees</b><small>پرسنل ثبت‌شده</small></div>
+ <div class="kpi"><span>حاضر امروز</span><b>@_data.PresentToday</b><small>دارای رکورد تردد</small></div>
+ <div class="kpi warn"><span>در انتظار تأیید</span><b>@_data.PendingRequests</b><small>مرخصی و مأموریت</small></div>
+ <div class="kpi"><span>تأیید این ماه</span><b>@_data.ApprovedThisMonth</b><small>گردش‌های تکمیل‌شده</small></div>
+ <div class="kpi"><span>مرخصی امروز</span><b>@_data.LeaveToday</b><small>درخواست تأییدشده</small></div>
+ <div class="kpi"><span>مأموریت امروز</span><b>@_data.MissionsToday</b><small>درخواست تأییدشده</small></div>
+ <div class="kpi danger-lite"><span>تأخیر امروز</span><b>@_data.LateToday</b><small>نیازمند پایش</small></div>
+ <div class="kpi"><span>اضافه‌کار امروز</span><b>@_data.OvertimeToday</b><small>دارای اضافه‌کار</small></div>
+</div>
+<div class="two-col enterprise-grid"><section class="panel"><h3>اقدامات سریع</h3><div class="quick-actions"><a href="/hr/leave">ثبت مرخصی</a><a href="/hr/missions">ثبت مأموریت</a><a href="/requests/inbox">کارتابل تأیید</a><a href="/personals">پرونده پرسنلی</a></div></section><section class="panel"><h3>هشدار مدیریتی</h3><p>@(_data.PendingRequests>10?"تعداد درخواست‌های در انتظار تأیید بالاست؛ کارتابل مدیران بررسی شود.":"صف درخواست‌های تأیید در وضعیت عادی قرار دارد.")</p><p>@(_data.LateToday>0?$"امروز {_data.LateToday} مورد تأخیر در محاسبات حضور و غیاب مشاهده شده است.":"مورد تأخیر ثبت‌شده‌ای برای تاریخ انتخابی مشاهده نشد.")</p></section></div>
+}
+@code{DateTime _date=DateTime.Today;EnterpriseDashboardVm? _data;string? _error;protected override Task OnInitializedAsync()=>Load();async Task Load(){try{_data=await Api.GetAsync<EnterpriseDashboardVm>($"api/hr/dashboard?date={_date:yyyy-MM-dd}");}catch(Exception ex){_error=ex.Message;}}}

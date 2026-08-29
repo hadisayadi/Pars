@@ -1,0 +1,7 @@
+ParsSystem/
+├── src/
+│   ├── Pars.Domain/           # Entities
+│   ├── Pars.Application/      # Services, DTOs, Interfaces
+│   ├── Pars.Infrastructure/   # EF Core, Repositories
+│   └── Pars.API/              # Controllers
+└── ParsSystem.sln

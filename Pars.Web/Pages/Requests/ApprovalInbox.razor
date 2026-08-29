@@ -1,0 +1,20 @@
+@page "/requests/inbox"
+@inject ApiClient Api
+<div class="page-title"><div><h1>کارتابل تأیید</h1><p>درخواست‌های منتظر اقدام شما</p></div><button @onclick="Load">بروزرسانی</button></div>
+@if(!string.IsNullOrWhiteSpace(_message)){<div class="notice">@_message</div>}
+@if(!string.IsNullOrWhiteSpace(_error)){<div class="error">@_error</div>}
+@if(_items.Count==0){<div class="panel empty">کارتابل شما خالی است.</div>}
+@foreach(var item in _items){
+<section class="panel approval-card">
+ <div class="approval-head"><div><span class="eyebrow">@(item.Kind==EnterpriseRequestKind.Leave?"مرخصی":"مأموریت")</span><h3>@item.Title</h3></div><span class="status pending">مرحله @item.CurrentStep</span></div>
+ <div class="request-summary"><span><b>پرسنل:</b> @item.PersonId</span><span><b>از:</b> @item.StartDate.ToString("yyyy/MM/dd")</span><span><b>تا:</b> @item.EndDate.ToString("yyyy/MM/dd")</span>@if(!string.IsNullOrWhiteSpace(item.Destination)){<span><b>مقصد:</b> @item.Destination</span>}</div>
+ <p>@item.Description</p>
+ <textarea rows="2" value="@_comments.GetValueOrDefault(item.Id)" @oninput="e => _comments[item.Id] = e.Value?.ToString()" placeholder="توضیحات تأیید یا رد"></textarea>
+ <div class="actions"><button class="success" @onclick="()=>Decide(item.Id,\"approve\")">تأیید</button><button class="danger" @onclick="()=>Decide(item.Id,\"reject\")">رد</button></div>
+</section>}
+@code{
+ List<EnterpriseRequestVm> _items=new(); Dictionary<Guid,string?> _comments=new(); string? _error,_message;
+ protected override Task OnInitializedAsync()=>Load();
+ async Task Load(){try{_items=await Api.GetAsync<List<EnterpriseRequestVm>>("api/enterprise/requests/inbox")??new();foreach(var i in _items)if(!_comments.ContainsKey(i.Id))_comments[i.Id]="";}catch(Exception ex){_error=ex.Message;}}
+ async Task Decide(Guid id,string action){_error=null;_message=null;try{await Api.PostAsync<EnterpriseRequestVm>("api/enterprise/requests/decision",new{RequestId=id,Action=action,Comment=_comments.GetValueOrDefault(id)});_message=action=="approve"?"درخواست تأیید شد.":"درخواست رد شد.";await Load();}catch(Exception ex){_error=ex.Message;}}
+}

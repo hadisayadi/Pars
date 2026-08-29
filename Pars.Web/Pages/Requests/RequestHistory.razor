@@ -1,0 +1,6 @@
+@page "/requests/history"
+@inject ApiClient Api
+<div class="page-title"><div><h1>تاریخچه گردش کار</h1><p>نمای کامل مراحل و تصمیم‌های ثبت‌شده</p></div><button @onclick="Load">بروزرسانی</button></div>
+@if(!string.IsNullOrWhiteSpace(_error)){<div class="error">@_error</div>}
+@foreach(var item in _items){<section class="panel history"><div class="approval-head"><h3>@item.Title</h3><span class="status @item.Status.ToString().ToLowerInvariant()">@item.Status</span></div><div class="timeline">@foreach(var a in item.Approvals){<div class="timeline-item"><b>@a.Step. @a.StepName</b><span>@a.ApproverRole — @a.Status</span>@if(!string.IsNullOrWhiteSpace(a.Comment)){<small>@a.Comment</small>}</div>}</div></section>}
+@code{List<EnterpriseRequestVm> _items=new();string? _error;protected override Task OnInitializedAsync()=>Load();async Task Load(){try{_items=await Api.GetAsync<List<EnterpriseRequestVm>>("api/enterprise/requests/my")??new();}catch(Exception ex){_error=ex.Message;}}}

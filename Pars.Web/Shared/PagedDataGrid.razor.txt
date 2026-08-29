@@ -1,0 +1,141 @@
+@using Pars.Web.Models
+@typeparam TItem
+
+<div class="data-grid-container">
+    @* جدول داده‌ها *@
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    @foreach (var col in Columns)
+                    {
+                        <th class="sortable" @onclick="() => SortBy(col)">
+                            @col.Title
+                            @if (_sortBy == col.Field)
+                            {
+                                <span>@(_sortDescending ? "▼" : "▲")</span>
+                            }
+                        </th>
+                    }
+                    @if (HasActions)
+                    {
+                        <th>عملیات</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Items == null || Items.Count == 0)
+                {
+                    <tr><td colspan="@(Columns.Count + (HasActions ? 1 : 0))" class="empty-state">
+                        هیچ رکوردی یافت نشد
+                    </td></tr>
+                }
+                else
+                {
+                    @foreach (var item in Items)
+                    {
+                        <tr>
+                            @foreach (var col in Columns)
+                            {
+                                <td>@col.GetValue(item)</td>
+                            }
+                            @if (HasActions)
+                            {
+                                <td class="actions-cell">
+                                    @if (ActionTemplate != null)
+                                    {
+                                        @ActionTemplate(item)
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @* نوار صفحه‌بندی *@
+    <div class="pagination-bar">
+        <div class="pagination-info">
+            نمایش @((CurrentPage - 1) * PageSize + 1) تا @(Math.Min(CurrentPage * PageSize, TotalCount))
+            از @TotalCount رکورد
+        </div>
+
+        <div class="pagination-controls">
+            <button disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(1)">««</button>
+            <button disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)">«</button>
+
+            @for (int i = Math.Max(1, CurrentPage - 2); i <= Math.Min(TotalPages, CurrentPage + 2); i++)
+            {
+                var page = i;
+                <button class="@(page == CurrentPage ? "active" : "")"
+                        @onclick="() => GoToPage(page)">@page</button>
+            }
+
+            <button disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)">»</button>
+            <button disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(TotalPages)">»»</button>
+        </div>
+
+        <div class="page-size-selector">
+            <label>تعداد در صفحه:</label>
+            <select @bind="PageSize" @onchange="PageSizeChanged">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<TItem>? Items { get; set; }
+    [Parameter] public List<GridColumn<TItem>> Columns { get; set; } = new();
+    [Parameter] public int TotalCount { get; set; }
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 20;
+    [Parameter] public bool HasActions { get; set; }
+    [Parameter] public RenderFragment<TItem>? ActionTemplate { get; set; }
+    [Parameter] public EventCallback<(string Field, bool Descending)> OnSortChanged { get; set; }
+    [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+    [Parameter] public EventCallback<int> OnPageSizeChanged { get; set; }
+
+    private string? _sortBy;
+    private bool _sortDescending;
+
+    private int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+
+    private void SortBy(GridColumn<TItem> col)
+    {
+        if (_sortBy == col.Field)
+            _sortDescending = !_sortDescending;
+        else
+        {
+            _sortBy = col.Field;
+            _sortDescending = false;
+        }
+        OnSortChanged.InvokeAsync((_sortBy, _sortDescending));
+    }
+
+    private void GoToPage(int page)
+    {
+        page = Math.Clamp(page, 1, TotalPages);
+        OnPageChanged.InvokeAsync(page);
+    }
+
+    private void PageSizeChanged()
+    {
+        OnPageSizeChanged.InvokeAsync(PageSize);
+    }
+}
+
+@* تعریف ستون *@
+@code {
+    public class GridColumn<T>
+    {
+        public string Field { get; set; } = "";
+        public string Title { get; set; } = "";
+        public Func<T, object?> GetValue { get; set; } = default!;
+    }
+}

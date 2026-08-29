@@ -1,0 +1,19 @@
+Pars.Web/
+├── Program.cs
+├── App.razor
+├── _Imports.razor
+├── Pages/
+│   ├── Login.razor
+│   ├── Dashboard.razor
+│   ├── Personals.razor
+│   ├── Attendance.razor
+│   └── Reports.razor
+├── Shared/
+│   ├── MainLayout.razor
+│   ├── NavMenu.razor
+│   └── DataGrid.razor
+├── Services/
+│   ├── ApiClient.cs
+│   └── AuthService.cs
+└── wwwroot/
+    └── css/site.css

@@ -1,0 +1,30 @@
+@page "/login"
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="brand-mark">P</div>
+        <h1>Pars System</h1>
+        <p>Enterprise HR & Workflow</p>
+        @if (!string.IsNullOrWhiteSpace(_error)) { <div class="error">@_error</div> }
+        <label>نام کاربری<input @bind="_username" autocomplete="username" /></label>
+        <label>رمز عبور<input type="password" @bind="_password" autocomplete="current-password" /></label>
+        <button class="full" @onclick="Login" disabled="@_busy">@(_busy ? "در حال ورود..." : "ورود به سامانه")</button>
+    </div>
+</div>
+
+@code {
+    string _username = ""; string _password = ""; string? _error; bool _busy;
+    async Task Login()
+    {
+        _error = null; _busy = true;
+        try
+        {
+            if (await Auth.LoginAsync(_username, _password)) Nav.NavigateTo("/", true);
+            else _error = "نام کاربری یا رمز عبور صحیح نیست.";
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; }
+    }
+}

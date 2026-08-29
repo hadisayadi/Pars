@@ -1,0 +1,27 @@
+@page "/hr/missions"
+@inject ApiClient Api
+
+<div class="page-title"><div><h1>مأموریت</h1><p>ثبت مأموریت اداری، مقصد، خودرو و گردش تأیید</p></div><button @onclick="Load">بروزرسانی</button></div>
+@if (!string.IsNullOrWhiteSpace(_message)) { <div class="notice">@_message</div> }
+@if (!string.IsNullOrWhiteSpace(_error)) { <div class="error">@_error</div> }
+<section class="panel">
+    <h3>مأموریت جدید</h3>
+    <div class="form-grid">
+        <label>کد پرسنلی<input @bind="_form.PersonId" /></label><label>عنوان<input @bind="_form.Title" /></label>
+        <label>از تاریخ<input type="date" @bind="_form.StartDate" /></label><label>تا تاریخ<input type="date" @bind="_form.EndDate" /></label>
+        <label>مقصد<input @bind="_form.Destination" /></label><label>جانشین<input @bind="_form.SubstitutePersonId" /></label>
+        <label class="check"><input type="checkbox" @bind="_form.HasVehicle" /> نیاز به خودرو</label><span></span>
+        <label class="wide">شرح مأموریت<textarea rows="3" @bind="_form.Description"></textarea></label>
+    </div>
+    <button @onclick="CreateAndSubmit">ثبت و ارسال برای تأیید</button>
+</section>
+<section class="panel"><h3>مأموریت‌های من</h3><RequestTable Items="_items" OnSubmit="Submit" /></section>
+
+@code {
+    MissionForm _form=new(){StartDate=DateTime.Today,EndDate=DateTime.Today}; List<EnterpriseRequestVm> _items=new(); string? _error,_message;
+    protected override Task OnInitializedAsync()=>Load();
+    async Task Load(){try{_items=await Api.GetAsync<List<EnterpriseRequestVm>>("api/enterprise/requests/my?kind=2")??new();}catch(Exception ex){_error=ex.Message;}}
+    async Task CreateAndSubmit(){_error=null;_message=null;try{var created=await Api.PostAsync<EnterpriseRequestVm>("api/enterprise/requests",new{Kind=2,_form.PersonId,_form.Title,_form.Description,_form.StartDate,_form.EndDate,StartTime=(TimeSpan?)null,EndTime=(TimeSpan?)null,IsHourly=false,_form.Destination,_form.HasVehicle,_form.SubstitutePersonId});if(created is not null)await Submit(created.Id);_form=new(){StartDate=DateTime.Today,EndDate=DateTime.Today};_message="مأموریت ثبت و وارد گردش تأیید شد.";await Load();}catch(Exception ex){_error=ex.Message;}}
+    async Task Submit(Guid id){await Api.PostAsync<EnterpriseRequestVm>($"api/enterprise/requests/{id}/submit",new{});await Load();}
+    sealed class MissionForm{public string PersonId{get;set;}="";public string Title{get;set;}="مأموریت اداری";public string? Description{get;set;}public DateTime StartDate{get;set;}public DateTime EndDate{get;set;}public string? Destination{get;set;}public bool HasVehicle{get;set;}public string? SubstitutePersonId{get;set;}}
+}

@@ -1,0 +1,15 @@
+@page "/"
+@inject ApiClient Api
+<h1>داشبورد مدیریتی</h1>
+<div class="toolbar"><label>تاریخ شمسی</label><input @bind="_persianDate" placeholder="1405/05/01"/><button @onclick="Load">به‌روزرسانی</button></div>
+<Busy Value="_loading" />
+@if(_data is not null){<div class="cards">
+<div class="card"><span>پرسنل دارای تردد</span><b>@_data.PersonnelWithEntries</b></div><div class="card"><span>رکورد تردد</span><b>@_data.RawEntries</b></div>
+<div class="card"><span>ثبت دستی</span><b>@_data.ManualEntries</b></div><div class="card"><span>مأموریت</span><b>@_data.Missions</b></div>
+<div class="card"><span>دارای تأخیر</span><b>@_data.LatePersons</b></div><div class="card"><span>دارای اضافه‌کار</span><b>@_data.OvertimePersons</b></div></div>}
+@code{
+ string _persianDate=""; bool _loading; DashboardDto? _data;
+ protected override Task OnInitializedAsync()=>Load();
+ async Task Load(){_loading=true;try{var q=string.IsNullOrWhiteSpace(_persianDate)?"":"&persianDate="+Uri.EscapeDataString(_persianDate);_data=await Api.GetAsync<DashboardDto>("api/attendance/dashboard?date="+DateTime.Today.ToString("yyyy-MM-dd")+q);}finally{_loading=false;}}
+ public sealed class DashboardDto{public int PersonnelWithEntries{get;set;} public int RawEntries{get;set;} public int ManualEntries{get;set;} public int Missions{get;set;} public int LatePersons{get;set;} public int OvertimePersons{get;set;}}
+}

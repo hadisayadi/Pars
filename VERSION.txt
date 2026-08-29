@@ -1,0 +1,4 @@
+Pars System v1.0
+Enterprise HR & Workflow
+Build: 2026.08.28
+Target: .NET 8 / ASP.NET Core / Blazor WebAssembly / SQL Server

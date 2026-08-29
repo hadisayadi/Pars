@@ -1,0 +1,11 @@
+@page "/requests/my"
+@inject ApiClient Api
+<div class="page-title"><div><h1>درخواست‌های من</h1><p>پیگیری همه درخواست‌های مرخصی و مأموریت</p></div><button @onclick="Load">بروزرسانی</button></div>
+@if(!string.IsNullOrWhiteSpace(_error)){<div class="error">@_error</div>}
+<section class="panel"><RequestTable Items="_items" OnSubmit="Submit" /></section>
+@code{
+ List<EnterpriseRequestVm> _items=new(); string? _error;
+ protected override Task OnInitializedAsync()=>Load();
+ async Task Load(){try{_items=await Api.GetAsync<List<EnterpriseRequestVm>>("api/enterprise/requests/my")??new();}catch(Exception ex){_error=ex.Message;}}
+ async Task Submit(Guid id){try{await Api.PostAsync<EnterpriseRequestVm>($"api/enterprise/requests/{id}/submit",new{});await Load();}catch(Exception ex){_error=ex.Message;}}
+}

@@ -1,0 +1,50 @@
+@page "/"
+@inject ApiClient Api
+@attribute [Authorize]
+
+<h1>📊 داشبورد</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-value">@_summary?.TotalPersonnel</span>
+        <span class="stat-label">کل پرسنل</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">@_summary?.ActivePersonnel</span>
+        <span class="stat-label">پرسنل فعال</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">@_summary?.MaleCount</span>
+        <span class="stat-label">مرد</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">@_summary?.FemaleCount</span>
+        <span class="stat-label">زن</span>
+    </div>
+</div>
+
+@if (_summary?.ByUnit != null)
+{
+    <h2>توزیع بر اساس واحد</h2>
+    <table class="data-table">
+        <thead><tr><th>واحد</th><th>تعداد</th></tr></thead>
+        <tbody>
+            @foreach (var (unit, count) in _summary.ByUnit)
+            {
+                <tr><td>@unit</td><td>@count</td></tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private PersonnelSummary? _summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _summary = await Api.GetAsync<PersonnelSummary>("api/reports/personnel/summary");
+    }
+
+    public record PersonnelSummary(int TotalPersonnel, int ActivePersonnel, int MaleCount, int FemaleCount,
+        Dictionary<string, int> ByUnit, Dictionary<string, int> ByEducation);
+}
